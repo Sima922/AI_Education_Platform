@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Course</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6f42c1;
+            --primary-dark: #5a32a3;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --light-bg: #f8f9fa;
+            --border: #dee2e6;
+            --text: #343a40;
+            --error: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .btn-ai-create {
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(111, 66, 193, 0.2);
+        }
+        .btn-ai-create:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(111, 66, 193, 0.3);
+        }
+        fieldset {
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            background: #fff;
+        }
+        legend {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 0 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .help-text {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 5px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(111, 66, 193, 0.2);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(111, 66, 193, 0.3);
+        }
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+        .chapter-form {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            position: relative;
+        }
+        .chapter-form h3 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        .add-chapter-btn {
+            background-color: var(--success);
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .add-chapter-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        .error {
+            color: var(--error);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .file-upload {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #ced4da;
+        }
+        .file-upload label {
+            margin-bottom: 10px;
+            display: block;
+            font-weight: 600;
+        }
+        .file-upload input[type="file"] {
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 6px;
+        }
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .remove-chapter {
+            background: none;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 1.2rem;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .progress-container {
+            margin-top: 20px;
+            background: #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 10px;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chaptersContainer = document.getElementById('chapters-container');
+            const addChapterBtn = document.getElementById('add-chapter-btn');
+            let chapterCount = {{ chapter_formset.total_form_count }};
+            const totalFormsInput = document.querySelector('[name="chapters-TOTAL_FORMS"]');
+            
+            // Function to update chapter numbers
+            function updateChapterNumbers() {
+                const chapterForms = chaptersContainer.querySelectorAll('.chapter-form');
+                chapterForms.forEach((form, index) => {
+                    const header = form.querySelector('h3');
+                    if (header) {
+                        header.textContent = `Chapter ${index + 1}`;
+                    }
+                    
+                    // Update all input names
+                    const inputs = form.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        const name = input.getAttribute('name');
+                        if (name) {
+                            input.setAttribute('name', name.replace(/chapters-\d+/, `chapters-${index}`));
+                        }
+                        
+                        const id = input.getAttribute('id');
+                        if (id) {
+                            input.setAttribute('id', id.replace(/chapters-\d+/, `chapters-${index}`));
+                        }
+                    });
+                    
+                    // Update labels
+                    const labels = form.querySelectorAll('label');
+                    labels.forEach(label => {
+                        const htmlFor = label.getAttribute('for');
+                        if (htmlFor) {
+                            label.setAttribute('for', htmlFor.replace(/chapters-\d+/, `chapters-${index}`));
+                        }
+                    });
+                });
+            }
+            
+            // Add new chapter form
+            addChapterBtn.addEventListener('click', function() {
+                const newChapterForm = document.createElement('div');
+                newChapterForm.className = 'chapter-form';
+                
+                const template = document.querySelector('.chapter-form').cloneNode(true);
+                template.innerHTML = template.innerHTML
+                    .replace(/chapters-\d+/g, `chapters-${chapterCount}`);
+                
+                // Clear input values
+                const inputs = template.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.type !== 'hidden' && input.name !== 'csrfmiddlewaretoken') {
+                        input.value = '';
+                    }
+                });
+                
+                // Add remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-chapter';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.type = 'button';
+                removeBtn.onclick = function() {
+                    newChapterForm.remove();
+                    chapterCount--;
+                    totalFormsInput.value = chapterCount;
+                    updateChapterNumbers();
+                };
+                
+                template.appendChild(removeBtn);
+                chaptersContainer.appendChild(template);
+                
+                chapterCount++;
+                totalFormsInput.value = chapterCount;
+                updateChapterNumbers();
+            });
+            
+            // Add remove buttons to existing chapters
+            document.querySelectorAll('.chapter-form').forEach(form => {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-chapter';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.type = 'button';
+                removeBtn.onclick = function() {
+                    if (chapterCount > 1) {
+                        form.remove();
+                        chapterCount--;
+                        totalFormsInput.value = chapterCount;
+                        updateChapterNumbers();
+                    } else {
+                        alert('A course must have at least one chapter!');
+                    }
+                };
+                form.appendChild(removeBtn);
+            });
+            
+            // File upload feedback
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const files = e.target.files;
+                    const container = this.closest('.file-upload');
+                    const feedback = container.querySelector('.file-feedback') || document.createElement('div');
+                    
+                    feedback.className = 'file-feedback';
+                    feedback.style.marginTop = '8px';
+                    feedback.style.fontSize = '0.9rem';
+                    
+                    if (files.length > 0) {
+                        const fileNames = Array.from(files).map(file => file.name).join(', ');
+                        feedback.textContent = `Selected: ${files.length} file(s) - ${fileNames.substring(0, 50)}${fileNames.length > 50 ? '...' : ''}`;
+                        feedback.style.color = '#28a745';
+                    } else {
+                        feedback.textContent = 'No files selected';
+                        feedback.style.color = '#6c757d';
+                    }
+                    
+                    if (!container.querySelector('.file-feedback')) {
+                        container.appendChild(feedback);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a New Course</h1>
+        
+        <a href="{% url 'courses:create_with_prompt' %}" class="btn-ai-create">
+            <i class="fas fa-magic"></i> Create with AI
+        </a>
+
+        <form method="post" enctype="multipart/form-data" id="course-form">
+            {% csrf_token %}
+            
+            <!-- Course Form -->
+            <fieldset>
+                <legend>Course Details</legend>
+                
+                <div class="form-group">
+                    <label for="{{ course_form.title.id_for_label }}">Course Title</label>
+                    {{ course_form.title }}
+                    <span class="help-text">Enter a descriptive title for your course</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ course_form.description.id_for_label }}">Course Description</label>
+                    {{ course_form.description }}
+                    <span class="help-text">Describe what students will learn in this course</span>
+                </div>
+                
+                <div class="file-upload">
+                    <label for="{{ course_form.thumbnail.id_for_label }}">Course Thumbnail</label>
+                    {{ course_form.thumbnail }}
+                    <span class="help-text">Upload an image that represents your course (required)</span>
+                </div>
+                
+                <div class="file-upload">
+                    <label for="{{ course_form.course_files.id_for_label }}">Course Files</label>
+                    {{ course_form.course_files }}
+                    <span class="help-text">Upload supporting materials (PDFs, documents, images)</span>
+                </div>
+            </fieldset>
+
+            <!-- Topic Form -->
+            <fieldset>
+                <legend>Topic Details</legend>
+                
+                <div class="form-group">
+                    <label for="{{ topic_form.title.id_for_label }}">Topic Title</label>
+                    {{ topic_form.title }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ topic_form.description.id_for_label }}">Topic Description</label>
+                    {{ topic_form.description }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ topic_form.links.id_for_label }}">Resource Link</label>
+                    {{ topic_form.links }}
+                    <span class="help-text">Link to external resources (optional)</span>
+                </div>
+                
+                <div class="file-upload">
+                    <label for="{{ topic_form.topic_files.id_for_label }}">Topic Files</label>
+                    {{ topic_form.topic_files }}
+                    <span class="help-text">Upload files specific to this topic</span>
+                </div>
+            </fieldset>
+
+            <!-- Chapter Forms -->
+            <fieldset>
+                <legend>Chapter Details</legend>
+                {{ chapter_formset.management_form }}
+                <div id="chapters-container">
+                    {% for chapter_form in chapter_formset %}
+                    <div class="chapter-form">
+                        <h3>Chapter {{ forloop.counter }}</h3>
+                        
+                        <div class="form-group">
+                            <label for="{{ chapter_form.title.id_for_label }}">Chapter Title</label>
+                            {{ chapter_form.title }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ chapter_form.content.id_for_label }}">Chapter Content</label>
+                            {{ chapter_form.content }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ chapter_form.links.id_for_label }}">Resource Link</label>
+                            {{ chapter_form.links }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ chapter_form.order.id_for_label }}">Chapter Order</label>
+                            {{ chapter_form.order }}
+                        </div>
+                        
+                        <div class="file-upload">
+                            <label for="{{ chapter_form.chapter_files.id_for_label }}">Chapter Files</label>
+                            {{ chapter_form.chapter_files }}
+                            <span class="help-text">Upload files specific to this chapter</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" id="add-chapter-btn" class="btn add-chapter-btn">
+                    <i class="fas fa-plus"></i> Add Another Chapter
+                </button>
+            </fieldset>
+
+            <fieldset>
+    <legend>Exam Configuration (Optional)</legend>
+    
+    <div class="form-group">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="enable-exam" name="enable_exam" 
+                   {% if exam_form.is_enabled.value %}checked{% endif %}>
+            <label class="form-check-label" for="enable-exam">
+                Enable AI-generated exam for this course
+            </label>
+        </div>
+        <span class="help-text">Create a comprehensive final exam that students must pass to earn a certificate</span>
+    </div>
+    
+    <div id="exam-config-details" style="display: {% if exam_form.is_enabled.value %}block{% else %}none{% endif %}; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <div class="form-group">
+            <label for="exam_type">Exam Type</label>
+            <select class="form-control" id="exam_type" name="exam_type">
+                <option value="default" {% if exam_form.exam_type.value == 'default' %}selected{% endif %}>Default Exam Style</option>
+                <option value="custom" {% if exam_form.exam_type.value == 'custom' %}selected{% endif %}>Custom Prompt</option>
+                <option value="template" {% if exam_form.exam_type.value == 'template' %}selected{% endif %}>Upload Template</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="prompt-section" style="display: {% if exam_form.exam_type.value == 'custom' %}block{% else %}none{% endif %};">
+            <label for="exam_prompt">Custom Exam Instructions</label>
+            <textarea class="form-control" id="exam_prompt" name="exam_prompt" rows="4" placeholder="Provide specific instructions for how the AI should generate your exam...">{% if exam_form.prompt.value %}{{ exam_form.prompt.value }}{% endif %}</textarea>
+            <span class="help-text">Example: "Create an exam with 50% multiple choice, 30% essay questions, and 20% practical problems focusing on calculus applications."</span>
+        </div>
+        
+        <div class="file-upload" id="template-section" style="display: {% if exam_form.exam_type.value == 'template' %}block{% else %}none{% endif %};">
+            <label for="exam_template">Exam Template File</label>
+            <input type="file" id="exam_template" name="exam_template" accept=".pdf,.doc,.docx,.txt">
+            <span class="help-text">Upload a past exam paper or template to guide the AI (PDF, Word, or text files)</span>
+        </div>
+        
+        <div class="form-group">
+            <label for="time_limit">Time Limit (minutes)</label>
+            <input type="number" class="form-control" id="time_limit" name="time_limit" min="30" max="300" value="{% if exam_form.time_limit_minutes.value %}{{ exam_form.time_limit_minutes.value }}{% else %}120{% endif %}">
+        </div>
+        
+        <div class="form-group">
+            <label for="passing_score">Passing Score (%)</label>
+            <input type="number" class="form-control" id="passing_score" name="passing_score" min="50" max="100" value="{% if exam_form.passing_score.value %}{{ exam_form.passing_score.value }}{% else %}70{% endif %}">
+        </div>
+        
+        <div class="form-group">
+            <label for="max_attempts">Maximum Attempts</label>
+            <input type="number" class="form-control" id="max_attempts" name="max_attempts" min="1" max="5" value="{% if exam_form.max_attempts.value %}{{ exam_form.max_attempts.value }}{% else %}1{% endif %}">
+        </div>
+    </div>
+</fieldset>
+
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-rocket"></i> Create Course
+            </button>
+        </form>
+
+        <a href="{% url 'courses:homepage' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Homepage
+        </a>
+    </div>
+</body>
+</html>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const enableExamCheckbox = document.getElementById('enable-exam');
+    const examConfigDetails = document.getElementById('exam-config-details');
+    const examTypeSelect = document.getElementById('exam_type');
+    const promptSection = document.getElementById('prompt-section');
+    const templateSection = document.getElementById('template-section');
+    
+    // Toggle exam settings visibility
+    if (enableExamCheckbox && examConfigDetails) {
+        enableExamCheckbox.addEventListener('change', function() {
+            examConfigDetails.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    // Toggle prompt/template sections based on exam type
+    if (examTypeSelect && promptSection && templateSection) {
+        examTypeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                promptSection.style.display = 'block';
+                templateSection.style.display = 'none';
+            } else if (this.value === 'template') {
+                promptSection.style.display = 'none';
+                templateSection.style.display = 'block';
+            } else {
+                promptSection.style.display = 'none';
+                templateSection.style.display = 'none';
+            }
+        });
+    }
+});

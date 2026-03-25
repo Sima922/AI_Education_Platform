@@ -1,0 +1,41 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio directory
+.vs/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet packages
+packages/
+*.nupkg
+
+# Environment files
+.env
+
+# Visual Studio Code (if used)
+.vscode/
+
+# Rider
+.idea/
+
+# Test results
+TestResults/
+
+# Publish output
+*.publishsettings
+
+# Azure
+*.azurePubxml

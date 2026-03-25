@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Course - {{ course_data.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <aside class="course-sidebar">
+        <h2>Course Navigation</h2>
+        <ul class="sidebar-nav">
+            <li><a href="#course-info">Course Information</a></li>
+            {% for chapter in course_data.chapters %}
+                <li>
+                    <a href="#chapter-{{ chapter.number }}">Chapter {{ chapter.number }}</a>
+                    <ul>
+                        <li><a href="#intro-{{ chapter.number }}">Introduction</a></li>
+                        <li><a href="#objectives-{{ chapter.number }}">Learning Objectives</a></li>
+                        <li><a href="#content-{{ chapter.number }}">Main Content</a></li>
+                        <li><a href="#examples-{{ chapter.number }}">Examples</a></li>
+                        <li><a href="#quiz-{{ chapter.number }}">Quiz</a></li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="sidebar-buttons">
+            <form id="save-preview-form" method="post" action="{% url 'courses:save_and_preview' draft_id=draft.id %}">
+                {% csrf_token %}
+                <!-- Hidden fields for course info -->
+                <input type="hidden" name="course-title" id="hidden-course-title">
+                <input type="hidden" name="course-description" id="hidden-course-description">
+                <input type="hidden" name="course-topic" id="hidden-course-topic">
+                <input type="hidden" name="chapter-count" id="hidden-chapter-count">
+                
+                <!-- Hidden fields for each chapter -->
+                {% for chapter in course_data.chapters %}
+                    <input type="hidden" name="chapter-{{ chapter.number }}-title" id="hidden-chapter-{{ chapter.number }}-title">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-introduction" id="hidden-chapter-{{ chapter.number }}-introduction">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-main-content" id="hidden-chapter-{{ chapter.number }}-main-content">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-summary" id="hidden-chapter-{{ chapter.number }}-summary">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-objectives" id="hidden-chapter-{{ chapter.number }}-objectives">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-examples" id="hidden-chapter-{{ chapter.number }}-examples">
+                    <input type="hidden" name="chapter-{{ chapter.number }}-quiz-count" id="hidden-chapter-{{ chapter.number }}-quiz-count">
+                    
+                    {% for question in chapter.quiz.questions %}
+                        <input type="hidden" name="chapter-{{ chapter.number }}-quiz-question-{{ forloop.counter }}" id="hidden-chapter-{{ chapter.number }}-quiz-question-{{ forloop.counter }}">
+                        <input type="hidden" name="chapter-{{ chapter.number }}-quiz-options-{{ forloop.counter }}" id="hidden-chapter-{{ chapter.number }}-quiz-options-{{ forloop.counter }}">
+                        <input type="hidden" name="chapter-{{ chapter.number }}-quiz-correct-{{ forloop.counter }}" id="hidden-chapter-{{ chapter.number }}-quiz-correct-{{ forloop.counter }}">
+                    {% endfor %}
+                {% endfor %}
+                
+                <button type="submit" class="btn btn-primary">Save and Preview</button>
+            </form>
+            
+            <form id="publish-form" method="post" action="{% url 'courses:create_course' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="draft_id" value="{{ draft.id }}">
+                <button type="submit" class="btn btn-success" id="publish-course">Publish Course</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="course-content">
+        <!-- Course Information Section -->
+        <section id="course-info" class="edit-section">
+            <div class="edit-header">
+                <h2>Course Information</h2>
+                <span class="save-status" id="course-info-status">Changes saved</span>
+            </div>
+            <div class="form-group">
+                <input type="text" id="course-title" class="form-control" value="{{ course_data.title }}" placeholder="Course Title">
+            </div>
+            <div class="form-group">
+                <div class="rich-text-container">
+                    <div class="editor-toolbar">
+                        <button type="button" data-command="bold" class="toolbar-btn">B</button>
+                        <button type="button" data-command="italic" class="toolbar-btn">I</button>
+                        <button type="button" data-command="insertUnorderedList" class="toolbar-btn">• List</button>
+                        <button type="button" data-command="insertOrderedList" class="toolbar-btn">1. List</button>
+                    </div>
+                    <div id="course-description" class="rich-text-editor" contenteditable="true" data-section="description">
+                        {{ course_data.description|safe }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="text" id="course-topic" class="form-control" value="{{ course_data.topic }}" placeholder="Course Topic">
+            </div>
+        </section>
+
+        <!-- Chapters Section -->
+        {% for chapter in course_data.chapters %}
+        <section id="chapter-{{ chapter.number }}" class="edit-section chapter-section">
+            <div class="edit-header">
+                <h2>Chapter {{ chapter.number }}</h2>
+                <span class="save-status" id="chapter-{{ chapter.number }}-status">Changes saved</span>
+            </div>
+
+            <!-- Chapter Title -->
+            <div class="form-group">
+                <input type="text" 
+                       id="chapter-{{ chapter.number }}-title"
+                       class="form-control chapter-title" 
+                       value="{{ chapter.title }}"
+                       data-chapter="{{ chapter.number }}"
+                       placeholder="Chapter Title">
+            </div>
+
+            <!-- Introduction -->
+            <div id="intro-{{ chapter.number }}" class="edit-section">
+                <h3>Introduction</h3>
+                <div class="rich-text-container">
+                    <div class="editor-toolbar">
+                        <button type="button" data-command="bold" class="toolbar-btn">B</button>
+                        <button type="button" data-command="italic" class="toolbar-btn">I</button>
+                        <button type="button" data-command="insertUnorderedList" class="toolbar-btn">• List</button>
+                        <button type="button" data-command="insertOrderedList" class="toolbar-btn">1. List</button>
+                    </div>
+                    <div id="chapter-{{ chapter.number }}-introduction" 
+                         class="rich-text-editor"
+                         contenteditable="true"
+                         data-chapter="{{ chapter.number }}"
+                         data-section="introduction">
+                        {{ chapter.introduction|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Objectives -->
+            <div id="objectives-{{ chapter.number }}" class="edit-section">
+                <h3>Learning Objectives</h3>
+                <div class="objectives-editor" data-chapter="{{ chapter.number }}">
+                    {% for objective in chapter.learning_objectives %}
+                    <div class="objective-row">
+                        <input type="text" 
+                               class="form-control objective-input" 
+                               value="{{ objective }}"
+                               data-chapter="{{ chapter.number }}">
+                        <button type="button" class="btn btn-danger remove-objective">Remove</button>
+                    </div>
+                    {% endfor %}
+                    <button type="button" class="btn btn-primary add-objective">Add Objective</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="content-{{ chapter.number }}" class="edit-section">
+                <h3>Main Content</h3>
+                <div class="rich-text-container">
+                    <div class="editor-toolbar">
+                        <button type="button" data-command="bold" class="toolbar-btn">B</button>
+                        <button type="button" data-command="italic" class="toolbar-btn">I</button>
+                        <button type="button" data-command="insertUnorderedList" class="toolbar-btn">• List</button>
+                        <button type="button" data-command="insertOrderedList" class="toolbar-btn">1. List</button>
+                    </div>
+                    <div id="chapter-{{ chapter.number }}-main-content"
+                         class="rich-text-editor"
+                         contenteditable="true"
+                         data-chapter="{{ chapter.number }}"
+                         data-section="main_content">
+                        {{ chapter.main_content|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples -->
+            <div id="examples-{{ chapter.number }}" class="edit-section">
+                <h3>Practical Examples</h3>
+                <div class="examples-editor" data-chapter="{{ chapter.number }}">
+                    {% for example in chapter.practical_examples %}
+                    <div class="example-row">
+                        <input type="text" 
+                               class="form-control example-input" 
+                               value="{{ example }}"
+                               data-chapter="{{ chapter.number }}">
+                        <button type="button" class="btn btn-danger remove-example">Remove</button>
+                    </div>
+                    {% endfor %}
+                    <button type="button" class="btn btn-primary add-example">Add Example</button>
+                </div>
+            </div>
+
+            <!-- Quiz -->
+            <div id="quiz-{{ chapter.number }}" class="edit-section">
+                <h3>Chapter Quiz</h3>
+                <div class="quiz-editor" data-chapter="{{ chapter.number }}">
+                    {% for question in chapter.quiz.questions %}
+                    <div class="question-editor" data-question-number="{{ forloop.counter }}">
+                        <input type="text" 
+                               class="form-control question-text" 
+                               value="{{ question.question }}"
+                               placeholder="Question">
+                        <div class="options-container">
+                            {% for option in question.options %}
+                            <div class="option-row">
+                                <input type="text" 
+                                       class="form-control option-text" 
+                                       value="{{ option }}">
+                                <input type="radio" 
+                                       name="correct-{{ chapter.number }}-{{ forloop.parentloop.counter }}"
+                                       value="{{ option }}"
+                                       {% if option == question.correct_answer %}checked{% endif %}>
+                                <button type="button" class="btn btn-danger remove-option">Remove</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-primary add-option">Add Option</button>
+                        <button type="button" class="btn btn-danger remove-question">Remove Question</button>
+                    </div>
+                    {% endfor %}
+                    <button type="button" class="btn btn-primary add-question">Add Question</button>
+                </div>
+            </div>
+        </section>
+        {% endfor %}
+    </main>
+</div>
+
+{% endblock %}

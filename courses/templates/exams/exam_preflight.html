@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Exam Pre-Flight Check</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5>Important Instructions</h5>
+                        <p>Before starting the exam, please ensure:</p>
+                        <ul>
+                            <li>You have a stable internet connection</li>
+                            <li>You are in a quiet, well-lit environment</li>
+                            <li>You have a working webcam and microphone</li>
+                            <li>You will not switch tabs or leave the exam page</li>
+                            <li>You have the required time to complete the exam ({{ exam.time_limit_minutes }} minutes)</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" id="preflight-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agree-terms" required>
+                            <label class="form-check-label" for="agree-terms">
+                                I understand that leaving the exam page or switching tabs may result in exam termination
+                            </label>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="no-cheating" required>
+                            <label class="form-check-label" for="no-cheating">
+                                I confirm I will not use unauthorized materials or assistance
+                            </label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="fullname" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullname" name="fullname" 
+                                   value="{{ user.get_full_name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="student_id" class="form-label">Student ID (if applicable)</label>
+                            <input type="text" class="form-control" id="student_id" name="student_id">
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" id="start-check" class="btn btn-primary">
+                                Start System Check
+                            </button>
+                        </div>
+                        
+                        <div id="system-check" class="mt-4" style="display: none;">
+                            <h5>System Check</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Camera</label>
+                                <div class="camera-feed border p-2 text-center">
+                                    <video id="camera-preview" width="320" height="240" autoplay muted></video>
+                                    <div id="camera-status" class="text-muted">Checking camera...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Microphone</label>
+                                <div class="microphone-test">
+                                    <div id="mic-status" class="text-muted">Checking microphone...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-success" id="check-success" style="display: none;">
+                                <i class="fas fa-check-circle"></i> All systems are ready!
+                            </div>
+                            
+                            <div class="alert alert-danger" id="check-failure" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> Some system checks failed. Please ensure your camera and microphone are working.
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" id="start-exam-btn" class="btn btn-success" disabled>
+                                    Start Exam
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/exam-proctoring.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startCheckBtn = document.getElementById('start-check');
+    const systemCheck = document.getElementById('system-check');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    
+    startCheckBtn.addEventListener('click', function() {
+        systemCheck.style.display = 'block';
+        startCheckBtn.disabled = true;
+        
+        // Initialize proctoring checks
+        initProctoringChecks().then(success => {
+            if (success) {
+                startExamBtn.disabled = false;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

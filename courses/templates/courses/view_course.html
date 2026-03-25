@@ -1,0 +1,1718 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }}</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        /* Course Sidebar */
+        .course-sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            height: calc(100vh - 40px);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .course-sidebar h2 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Course Progress Section */
+        .course-progress {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            margin-bottom: 25px;
+            color: white;
+            text-align: center;
+        }
+        .progress-circle {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            position: relative;
+            border-radius: 50%;
+            background: conic-gradient(#ffffff 0% {{ progress }}%, rgba(255,255,255,0.3) {{ progress }}% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-circle::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+        }
+        .progress-text {
+            position: relative;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            z-index: 1;
+        }
+
+        /* Main Content Area */
+        .course-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - 40px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        /* Content wrapper with padding */
+        .content-wrapper {
+            padding: 30px;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        p {
+            color: #4a5568;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .sidebar-nav li {
+            margin-bottom: 8px;
+        }
+        .sidebar-nav a {
+            color: #4a5568;
+            text-decoration: none;
+            display: block;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .sidebar-nav a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .sidebar-nav .chapter-sections {
+            margin-left: 15px;
+            font-size: 0.9em;
+        }
+        .sidebar-nav .chapter-sections a {
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            font-weight: 400;
+        }
+
+        /* Chapter Sections */
+        .chapter {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            scroll-margin-top: 20px;
+        }
+        .content-section {
+            background: rgba(248, 250, 252, 0.8);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            scroll-margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .learning-objectives {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            scroll-margin-top: 20px;
+            border-left: 4px solid #764ba2;
+        }
+
+        /* Video Section */
+        .videos-section {
+            margin-top: 25px;
+            scroll-margin-top: 20px;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .video-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .video-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .video-frame {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
+        }
+        .video-info {
+            padding: 20px;
+        }
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        .video-description {
+            font-size: 0.9em;
+            color: #718096;
+            line-height: 1.5;
+        }
+
+        /* Quiz Section */
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(255, 243, 205, 0.8), rgba(255, 237, 160, 0.8));
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
+            scroll-margin-top: 20px;
+            border-left: 4px solid #f6ad55;
+        }
+        .quiz-question {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .quiz-options {
+            margin-top: 15px;
+        }
+        .quiz-option {
+            display: block;
+            margin: 12px 0;
+            padding: 15px;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .quiz-option:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        .quiz-option input[type="radio"] {
+            margin-right: 12px;
+            accent-color: #667eea;
+        }
+        .quiz-submit-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .quiz-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        /* Quiz results */
+        .quiz-results {
+            background: linear-gradient(135deg, rgba(227, 242, 253, 0.8), rgba(191, 219, 254, 0.8));
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
+            border-left: 4px solid #4299e1;
+        }
+        .quiz-result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .quiz-result-correct {
+            background: rgba(72, 187, 120, 0.1);
+            border-left: 4px solid #48bb78;
+        }
+        .quiz-result-incorrect {
+            background: rgba(245, 101, 101, 0.1);
+            border-left: 4px solid #f56565;
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            margin: 25px 0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .text-success {
+            color: #48bb78;
+            font-weight: bold;
+        }
+        .text-danger {
+            color: #f56565;
+            font-weight: bold;
+        }
+        .explanation {
+            background: rgba(247, 250, 252, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            font-style: italic;
+            margin-top: 12px;
+            border-left: 3px solid #cbd5e0;
+        }
+
+        /* Messages */
+        .messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+        .alert-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        .alert-error, .alert-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+        .alert-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+        .alert-info {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* No videos message styling */
+        .no-videos {
+            text-align: center;
+            color: #a0aec0;
+            font-style: italic;
+            padding: 40px;
+            background: rgba(247, 250, 252, 0.5);
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 15px;
+            }
+            .course-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+            }
+            .course-content {
+                min-height: auto;
+            }
+            .content-wrapper {
+                padding: 20px;
+                height: auto;
+            }
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="course-sidebar">
+            <h2>{{ course.title }}</h2>
+            {% if is_enrolled %}
+                <div class="course-progress">
+                    <div class="progress-circle">
+                        <div class="progress-text">{{ progress|floatformat:0 }}%</div>
+                    </div>
+                    <p>Course Progress</p>
+                </div>
+            {% endif %}
+
+            <nav>
+                <ul class="sidebar-nav">
+                    <li><a href="#course-intro">📚 Course Overview</a></li>
+                    {% for chapter in chapters %}
+                        <li>
+                            <a href="#chapter-{{ chapter.id }}">
+                                📖 Chapter {{ chapter.order }}: {{ chapter.title }}
+                            </a>
+                            <div class="chapter-sections">
+                                <a href="#intro-{{ chapter.id }}">📋 Introduction</a>
+                                <a href="#objectives-{{ chapter.id }}">🎯 Objectives</a>
+                                <a href="#content-{{ chapter.id }}">📖 Content</a>
+                                <a href="#videos-{{ chapter.id }}">🎥 Videos</a>
+                                <a href="#quiz-{{ chapter.id }}">✏️ Quiz</a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <!-- Action buttons for enrolled users or course creators -->
+            <div class="action-buttons">
+                {% if is_enrolled %}
+                <a href="{% url 'courses:track_progress' course.id %}" class="btn btn-primary">📊 Track Progress</a>
+                {% elif user.is_authenticated %}
+                    <form method="post" action="{% url 'courses:enroll_course' course.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">🚀 Enroll Now</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-primary">🔐 Log in to Enroll</a>
+                {% endif %}
+                
+                {% if can_edit %}
+                <a href="{% url 'courses:edit_course' course.id %}" class="btn btn-warning">✏️ Edit Course</a>
+                    <form method="post" action="{% url 'courses:delete_course' course.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this course?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">🗑️ Delete Course</button>
+                    </form>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="course-content">
+            <div class="content-wrapper">
+                <!-- Course Introduction -->
+                <section id="course-intro" class="content-section">
+                    <h1>{{ course.title }}</h1>
+                    <p>{{ course.description }}</p>
+                    
+                    {% if course.topic_set.first %}
+                        <div class="course-topic">
+                            <h3>🎯 Course Topic: {{ course.topic_set.first.title }}</h3>
+                            {% if course.topic_set.first.description %}
+                                <p>{{ course.topic_set.first.description }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </section>
+
+                <!-- Chapters -->
+                {% for chapter in chapters %}
+                    <section id="chapter-{{ chapter.id }}" class="chapter">
+                        <h2>Chapter {{ chapter.order }}: {{ chapter.title }}</h2>
+                        
+                        <!-- Introduction -->
+                        <div id="intro-{{ chapter.id }}" class="content-section">
+                            <h3>📋 Introduction</h3>
+                            {{ chapter.introduction|linebreaks }}
+                        </div>
+
+                        <!-- Learning Objectives -->
+                        <div id="objectives-{{ chapter.id }}" class="learning-objectives">
+                            <h3>🎯 Learning Objectives</h3>
+                            <ul>
+                                {% for objective in chapter.learning_objectives %}
+                                    <li>{{ objective }}</li>
+                                {% empty %}
+                                    <li>No learning objectives defined for this chapter.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div id="content-{{ chapter.id }}" class="content-section">
+                            <h3>📖 Main Content</h3>
+                            {{ chapter.main_content|linebreaks }}
+                        </div>
+
+                        <!-- Practical Examples -->
+                        <div class="content-section">
+                            <h3>💡 Practical Examples</h3>
+                            {% if chapter.practical_examples %}
+                                {% for example in chapter.practical_examples %}
+                                    <div class="example">
+                                        <h4>{{ example.title }}</h4>
+                                        {{ example.content|linebreaks }}
+                                    </div>
+                                {% empty %}
+                                    <p>No practical examples available for this chapter.</p>
+                                {% endfor %}
+                            {% else %}
+                                <p>No practical examples available for this chapter.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Chapter Summary -->
+                        <div class="content-section">
+                            <h3>📝 Summary</h3>
+                            {% if chapter.summary %}
+                                {{ chapter.summary|linebreaks }}
+                            {% else %}
+                                <p>No summary available for this chapter.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Videos Section -->
+                        <div id="videos-{{ chapter.id }}" class="videos-section">
+                            <h3>🎥 Related Videos</h3>
+                            <div class="video-grid">
+                                {% for video in chapter.videometadata_set.all %}
+                                    <div class="video-card">
+                                        {% if video.video_type == 'youtube' and video.is_video_available %}
+                                            <iframe
+                                                class="video-frame"
+                                                src="{{ video.embed_url }}"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen>
+                                            </iframe>
+                                        {% elif video.video_type == 'upload' and video.is_video_available %}
+                                            <video controls class="video-frame" preload="metadata">
+                                                <source src="{{ video.upload_url }}" type="video/mp4">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        {% else %}
+                                            <div class="video-frame error-frame">
+                                                {% if video.video_type == 'youtube' %}
+                                                    <p>YouTube video unavailable</p>
+                                                    <small>URL: {{ video.youtube_url }}</small>
+                                                    <small>Extracted ID: {{ video.youtube_id|default:"None" }}</small>
+                                                {% else %}
+                                                    <p>Video file not found</p>
+                                                    <small>File: {{ video.video_file.name|default:"No file specified" }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="video-info">
+                                            <h4 class="video-title">{{ video.title }}</h4>
+                                            <p class="video-description">{{ video.description|truncatewords:20 }}</p>
+                                            <small class="video-type">{{ video.get_video_type_display }}</small>
+                                            
+                                            <!-- Debug info (remove in production) -->
+                                            {% if debug %}
+                                            <div class="debug-info" style="font-size: 10px; color: #666; margin-top: 5px;">
+                                                <div>Type: {{ video.video_type }}</div>
+                                                <div>Available: {{ video.is_video_available }}</div>
+                                                {% if video.video_type == 'youtube' %}
+                                                    <div>URL: {{ video.youtube_url }}</div>
+                                                    <div>ID: {{ video.youtube_id }}</div>
+                                                    <div>Embed: {{ video.embed_url }}</div>
+                                                {% else %}
+                                                    <div>File: {{ video.video_file.name|default:"None" }}</div>
+                                                    <div>Upload URL: {{ video.upload_url }}</div>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="no-videos">No videos available for this chapter.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Quiz -->
+                        <div id="quiz-{{ chapter.id }}" class="quiz-section">
+                            <h3>✏️ Chapter Quiz</h3>
+
+                            {% if chapter.quiz and chapter.quiz.questions %}
+                                {% with quiz_key='quiz_results_'|add:chapter.id|stringformat:"s" %}
+                                {% with quiz_results=request.session|get_item:quiz_key %}
+                                    {% if quiz_results and quiz_results.chapter_id == chapter.id %}
+                                        <!-- Quiz Results Section -->
+                                        <div class="quiz-results">
+                                            <h4>🎉 Your Results</h4>
+                                            <p>Score: {{ quiz_results.score }}/{{ quiz_results.total }} ({{ quiz_results.percentage|floatformat:1 }}%)</p>
+
+                                            {% for q_id, response in quiz_results.responses.items %}
+                                                <div class="quiz-result-item {% if response.is_correct %}quiz-result-correct{% else %}quiz-result-incorrect{% endif %}">
+                                                    <p><strong>{{ response.question }}</strong></p>
+                                                    <p>Your answer: <span class="{% if response.is_correct %}text-success{% else %}text-danger{% endif %}">{{ response.user_answer }}</span></p>
+                                                    {% if not response.is_correct %}
+                                                        <p>Correct answer: <span class="text-success">{{ response.correct_answer }}</span></p>
+                                                    {% endif %}
+                                                    {% if response.explanation %}
+                                                        <p class="explanation"><small>{{ response.explanation }}</small></p>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+
+                                            <form method="post" action="{% url 'courses:reset_quiz' chapter.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary">🔄 Retake Quiz</button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <!-- Quiz Questions Form -->
+                                        <form method="post" action="{% url 'courses:submit_quiz' chapter.id %}">
+                                            {% csrf_token %}
+                                            {% for question in chapter.quiz.questions %}
+                                                <div class="quiz-question">
+                                                    <p><strong>Question {{ forloop.counter }}:</strong> {{ question.question }}</p>
+                                                    <div class="quiz-options">
+                                                        {% for option in question.options %}
+                                                            <label class="quiz-option">
+                                                                <input type="radio" 
+                                                                    name="question_{{ forloop.parentloop.counter }}" 
+                                                                    value="{{ forloop.counter0 }}"
+                                                                    required>
+                                                                {{ option }}
+                                                            </label>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                            <button type="submit" class="quiz-submit-btn">📝 Submit Quiz</button>
+                                        </form>
+                                    {% endif %}
+                                {% endwith %}
+                                {% endwith %}
+                            {% else %}
+                            {% if exam %}
+<div class="content-section" style="background-color: #fff3cd; border-left: 4px solid #ffc107; margin-top: 20px;">
+    <h4>🎓 Course Exam</h4>
+    
+    {% if exam_status.certificate_earned %}
+        <div class="alert alert-success">
+            <p><strong>Certificate Earned!</strong></p>
+            <p>You've successfully passed the exam for this course.</p>
+            <a href="{% url 'certificate' course.id %}" class="btn btn-success btn-sm">
+                View Certificate
+            </a>
+        </div>
+    {% elif exam_status.is_eligible %}
+        {% if exam_status.attempts_remaining > 0 %}
+            <p>This course includes a final exam that you must pass to earn a certificate.</p>
+            <p><strong>Attempts remaining:</strong> {{ exam_status.attempts_remaining }}</p>
+            <a href="{% url 'exam_preflight' course.id %}" class="btn btn-primary btn-sm" style="width: 100%;">
+                Take Exam
+            </a>
+        {% else %}
+            <div class="alert alert-warning">
+                <p>You have used all your exam attempts.</p>
+                <p>Please contact the instructor for further options.</p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <p>This course includes a final exam.</p>
+            <p>Complete all chapters to become eligible.</p>
+            <div class="progress" style="height: 10px; margin-top: 10px;">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: {{ progress }}%;" 
+                     aria-valuenow="{{ progress }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            <small>{{ progress|floatformat:0 }}% Complete</small>
+        </div>
+    {% endif %}
+    
+    <div style="margin-top: 15px; font-size: 0.9em; color: #6c757d;">
+        <p><strong>Exam Details:</strong></p>
+        <ul style="padding-left: 20px;">
+            <li>Time Limit: {{ exam.time_limit_minutes }} minutes</li>
+            <li>Passing Score: {{ exam.passing_score }}%</li>
+            <li>Max Attempts: {{ exam.max_attempts }}</li>
+        </ul>
+    </div>
+</div>
+{% endif %}
+                                <!-- No Quiz Available -->
+                                <p>No quiz available for this chapter.</p>
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</body>
+</html>
+
+    <script>
+        // Smart Progress Tracking
+let readingSections = new Set();
+let watchedVideos = new Set();
+
+// Track section reading with intelligent timing
+function trackSectionReading(sectionId, chapterId, sectionType) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                // Start timer when section is 50% visible
+                setTimeout(() => {
+                    if (entry.isIntersecting && !readingSections.has(sectionId)) {
+                        readingSections.add(sectionId);
+                        sendProgressUpdate(chapterId, sectionType);
+                    }
+                }, 3000); // Mark as read after 3 seconds of viewing
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    observer.observe(section);
+}
+
+// Track video watching
+function trackVideoWatching() {
+    const videos = document.querySelectorAll('video, iframe');
+    
+    videos.forEach(video => {
+        const chapterId = video.closest('.chapter')?.id.split('-')[1];
+        const videoId = video.getAttribute('data-video-id') || video.src;
+        
+        if (video.tagName === 'VIDEO') {
+            let watchTime = 0;
+            let duration = 0;
+            
+            video.addEventListener('loadedmetadata', () => {
+                duration = video.duration;
+            });
+            
+            video.addEventListener('timeupdate', () => {
+                watchTime = video.currentTime;
+                
+                // Mark as watched if user watched 70% of video
+                if (duration > 0 && (watchTime / duration) > 0.7 && !watchedVideos.has(videoId)) {
+                    watchedVideos.add(videoId);
+                    sendVideoProgress(chapterId, videoId);
+                }
+            });
+        } else if (video.tagName === 'IFRAME') {
+            // For YouTube videos, track play events
+            video.addEventListener('load', () => {
+                setTimeout(() => {
+                    if (!watchedVideos.has(videoId)) {
+                        watchedVideos.add(videoId);
+                        sendVideoProgress(chapterId, videoId);
+                    }
+                }, 30000); // Mark as watched after 30 seconds
+            });
+        }
+    });
+}
+
+// Send progress update to server
+function sendProgressUpdate(chapterId, sectionType) {
+    fetch("{% url 'courses:track_section_progress' %}", {  // Use Django URL template tag
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            chapter_id: chapterId,
+            section_type: sectionType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateProgressDisplay();
+        }
+    });
+}
+
+function sendVideoProgress(chapterId, videoId) {
+    fetch("{% url 'courses:track_video_progress' %}", {  // Use Django URL template tag
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            chapter_id: chapterId,
+            video_id: videoId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateProgressDisplay();
+        }
+    });
+}
+
+function updateProgressDisplay() {
+    const progressUrl = "{% url 'courses:get_user_progress' course_id=course.id %}";  // Use Django URL template tag
+    fetch(progressUrl)
+        .then(response => response.json())
+        .then(data => {
+            const progressText = document.querySelector('.progress-text');
+            const progressCircle = document.querySelector('.progress-circle');
+            
+            if (progressText) {
+                progressText.textContent = `${data.progress}%`;
+            }
+            
+            if (progressCircle) {
+                progressCircle.style.background = `conic-gradient(#007bff 0% ${data.progress}%, #e6e6e6 ${data.progress}% 100%)`;
+            }
+        });
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize tracking when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Track sections
+    document.querySelectorAll('.chapter').forEach(chapter => {
+        const chapterId = chapter.id.split('-')[1];
+        
+        trackSectionReading(`intro-${chapterId}`, chapterId, 'intro');
+        trackSectionReading(`objectives-${chapterId}`, chapterId, 'objectives');
+        trackSectionReading(`content-${chapterId}`, chapterId, 'content');
+    });
+    
+    // Track videos
+    trackVideoWatching();
+    
+    // Update progress display
+    updateProgressDisplay();
+    
+    // Keep existing functionality
+    loadQuizProgress();
+    highlightActiveSections();
+    checkUrlForScroll();
+});
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Auto-hide messages after 5 seconds
+        setTimeout(() => {
+            const messages = document.querySelector('.messages');
+            if (messages) {
+                messages.style.display = 'none';
+            }
+        }, 5000);
+
+        // Progress circle rendering
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressCircles = document.querySelectorAll('.progress-circle');
+            progressCircles.forEach(circle => {
+                const progressText = circle.querySelector('.progress-text');
+                if (progressText) {
+                    const progressValue = parseFloat(progressText.innerText);
+                    circle.style.background = `conic-gradient(#007bff 0% ${progressValue}%, #e6e6e6 ${progressValue}% 100%)`;
+                }
+            });
+        });
+
+        // Make entire quiz option label clickable
+        const quizOptions = document.querySelectorAll('.quiz-option');
+        quizOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                // Don't trigger if clicking on the radio input itself
+                if (e.target.tagName !== 'INPUT') {
+                    const radioInput = this.querySelector('input[type="radio"]');
+                    if (radioInput) {
+                        radioInput.checked = true;
+                    }
+                }
+            });
+        });
+
+        // Highlight active section in sidebar
+        function highlightActiveSections() {
+            const sections = document.querySelectorAll('section[id], div[id^="intro-"], div[id^="objectives-"], div[id^="content-"], div[id^="videos-"], div[id^="quiz-"]');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                if (sectionTop < 100) {
+                    currentSection = '#' + section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Add styles for active links
+        const style = document.createElement('style');
+        style.textContent = `
+            .sidebar-nav a.active {
+                background-color: #e3f2fd;
+                color: #007bff;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        window.addEventListener('scroll', highlightActiveSections);
+        document.addEventListener('DOMContentLoaded', highlightActiveSections);
+
+        // Save quiz progress temporarily
+const saveQuizProgress = () => {
+    const quizForms = document.querySelectorAll('.quiz-section form');
+    quizForms.forEach(form => {
+        const formData = new FormData(form);
+        const formId = form.closest('.quiz-section').id;
+        
+        const answers = {};
+        for (const [key, value] of formData.entries()) {
+            answers[key] = value;
+        }
+        
+        sessionStorage.setItem(`quiz_progress_${formId}`, JSON.stringify(answers));
+    });
+};
+
+// Load saved quiz progress
+const loadQuizProgress = () => {
+    const quizSections = document.querySelectorAll('.quiz-section');
+    quizSections.forEach(section => {
+        const formId = section.id;
+        const savedData = sessionStorage.getItem(`quiz_progress_${formId}`);
+        
+        if (savedData) {
+            const answers = JSON.parse(savedData);
+            
+            for (const [key, value] of Object.entries(answers)) {
+                const input = section.querySelector(`input[name="${key}"][value="${value}"]`);
+                if (input) {
+                    input.checked = true;
+                }
+            }
+        }
+    });
+};
+
+// Save progress when inputs change
+document.addEventListener('change', function(e) {
+    if (e.target.matches('.quiz-option input[type="radio"]')) {
+        saveQuizProgress();
+    }
+});
+
+// Load progress when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadQuizProgress();
+});
+
+        // Form validation for quiz
+// Form validation for quiz
+document.addEventListener('DOMContentLoaded', function() {
+    const quizForms = document.querySelectorAll('.quiz-section form');
+    quizForms.forEach(form => {
+        if (form.getAttribute('action').includes('submit_quiz')) {
+            form.addEventListener('submit', function(e) {
+                const questions = this.querySelectorAll('.quiz-question');
+                let allAnswered = true;
+                
+                questions.forEach(question => {
+                    const name = `question_${Array.from(form.querySelectorAll('.quiz-question')).indexOf(question) + 1}`;
+                    const radios = form.querySelectorAll(`input[name="${name}"]:checked`);
+                    
+                    if (radios.length === 0) {
+                        allAnswered = false;
+                        question.classList.add('unanswered');
+                        
+                        // Remove unanswered class after animation completes
+                        setTimeout(() => {
+                            question.classList.remove('unanswered');
+                        }, 1000);
+                    }
+                });
+                
+                if (!allAnswered) {
+                    e.preventDefault();
+                    alert('Please answer all questions before submitting.');
+                    
+                    // Scroll to first unanswered question
+                    const firstUnanswered = form.querySelector('.unanswered');
+                    if (firstUnanswered) {
+                        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } else {
+                    // Clear saved progress when form is successfully submitted
+                    const quizId = form.closest('.quiz-section').id;
+                    sessionStorage.removeItem(`quiz_progress_${quizId}`);
+                }
+            });
+        }
+    });
+});
+
+// Improved quiz progress saving
+function saveAllQuizProgress() {
+    document.querySelectorAll('.quiz-section form').forEach(form => {
+        if (form.getAttribute('action').includes('submit_quiz')) {
+            const formData = {};
+            const quizId = form.closest('.quiz-section').id;
+            
+            // Get all selected radio buttons
+            form.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                formData[radio.name] = radio.value;
+            });
+            
+            if (Object.keys(formData).length > 0) {
+                sessionStorage.setItem(`quiz_progress_${quizId}`, JSON.stringify(formData));
+            }
+        }
+    });
+}
+
+// Load saved quiz progress with improved error handling
+function loadAllQuizProgress() {
+    document.querySelectorAll('.quiz-section').forEach(section => {
+        const quizId = section.id;
+        const form = section.querySelector('form');
+        
+        if (form && form.getAttribute('action').includes('submit_quiz')) {
+            try {
+                const savedData = sessionStorage.getItem(`quiz_progress_${quizId}`);
+                
+                if (savedData) {
+                    const formData = JSON.parse(savedData);
+                    
+                    for (const [name, value] of Object.entries(formData)) {
+                        const radio = form.querySelector(`input[name="${name}"][value="${value}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading saved quiz progress:", e);
+                // Clear potentially corrupted data
+                sessionStorage.removeItem(`quiz_progress_${quizId}`);
+            }
+        }
+    });
+}
+
+// Save progress on radio button changes
+document.addEventListener('change', function(e) {
+    if (e.target.matches('input[type="radio"]') && 
+        e.target.closest('form') && 
+        e.target.closest('form').getAttribute('action').includes('submit_quiz')) {
+        saveAllQuizProgress();
+    }
+});
+
+// Save progress before page unload
+window.addEventListener('beforeunload', saveAllQuizProgress);
+
+// Load progress when DOM is loaded
+document.addEventListener('DOMContentLoaded', loadAllQuizProgress);
+
+// Add this to the existing script section
+function scrollToQuizSection(chapterId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scrollTarget = urlParams.get('scroll_to');
+    
+    if (scrollTarget && scrollTarget.startsWith('quiz-')) {
+        const targetElement = document.getElementById(scrollTarget);
+        if (targetElement) {
+            setTimeout(() => {
+                targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 100);
+        }
+    }
+}
+
+// Add this to the DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', function() {
+    loadQuizProgress();
+    highlightActiveSections();
+    checkUrlForScroll();
+    // Keep other initialization code...
+});
+
+// Add this function to the script section
+function checkUrlForScroll() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scrollTarget = urlParams.get('scroll_to');
+    
+    if (scrollTarget) {
+        const targetElement = document.getElementById(scrollTarget);
+        if (targetElement) {
+            setTimeout(() => {
+                targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 300);
+        }
+    }
+}
+
+
+
+    </script>
+</body>
+</html>
+
+<!-- Chatbot Widget -->
+<div id="chatbot-container" class="chatbot-container hidden">
+    <div class="chatbot-header">
+        <div class="header-content">
+            <div class="bot-avatar">🤖</div>
+            <div class="bot-info">
+                <h4>Course Assistant</h4>
+                <span class="status">Online</span>
+            </div>
+        </div>
+        <button id="chatbot-toggle" class="toggle-btn">
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+    
+    <div id="chatbot-body" class="chatbot-body">
+        <div id="chat-messages" class="chat-messages"></div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" data-msg="Summarize this course">📚 Summary</button>
+            <button class="quick-btn" data-msg="Key concepts">🔑 Concepts</button>
+            <button class="quick-btn" data-msg="Practice questions">❓ Quiz</button>
+        </div>
+        
+        <div class="chat-input-group">
+            <input type="text" id="chat-input" class="form-control" placeholder="Ask about this course...">
+            <button id="chat-send" class="btn btn-primary">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Chat Button -->
+<div id="chat-bubble" class="chat-bubble">
+    <i class="bi bi-chat-dots"></i>
+    <div class="pulse-ring"></div>
+</div>
+
+<style>
+    .chatbot-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        z-index: 1000;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.08);
+    }
+    
+    .chatbot-container.hidden {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        pointer-events: none;
+    }
+    
+    .chatbot-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .bot-avatar {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    
+    .bot-info h4 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .status {
+        font-size: 12px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .status::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #4ade80;
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+    }
+    
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .toggle-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .chatbot-body {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 68px);
+        background: #fafafa;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        scroll-behavior: smooth;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 3px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
+    }
+    
+    .message {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        word-wrap: break-word;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user-message {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .bot-message {
+        align-self: flex-start;
+        background: white;
+        color: #374151;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .typing-indicator {
+        align-self: flex-start;
+        background: white;
+        border-radius: 16px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 3px;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #9ca3af;
+        animation: typing 1.4s infinite;
+    }
+    
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+    
+    .quick-actions {
+        padding: 12px 20px;
+        display: flex;
+        gap: 8px;
+        border-top: 1px solid #e5e7eb;
+        background: white;
+    }
+    
+    .quick-btn {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 6px 10px;
+        font-size: 11px;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .quick-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .chat-input-group {
+        display: flex;
+        padding: 16px 20px;
+        gap: 10px;
+        border-top: 1px solid #e5e7eb;
+        background: white;
+    }
+    
+    #chat-input {
+        flex: 1;
+        border: 2px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
+        transition: border-color 0.2s ease;
+    }
+    
+    #chat-input:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    #chat-send {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    
+    #chat-send:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Floating Chat Button */
+    .chat-bubble {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+    
+    .chat-bubble:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+    }
+    
+    .pulse-ring {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.4); opacity: 0; }
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 480px) {
+        .chatbot-container {
+            width: calc(100vw - 24px);
+            height: calc(100vh - 40px);
+            bottom: 12px;
+            right: 12px;
+        }
+        .chat-bubble {
+            bottom: 16px;
+            right: 16px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatBubble = document.getElementById('chat-bubble');
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const quickBtns = document.querySelectorAll('.quick-btn');
+        
+        let conversationId = null;
+        let isOpen = false;
+        
+        // Initialize chatbot
+        async function initChatbot() {
+            try {
+                const courseId = {{ course.id }};
+                const response = await fetch(`/api/course/${courseId}/chat/start/`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    conversationId = data.conversation_id;
+                    addMessage(data.welcome_message, false);
+                    if (!data.is_new) loadHistory();
+                }
+            } catch (error) {
+                addMessage("Assistant is currently unavailable", false);
+            }
+        }
+        
+        // Load conversation history
+        async function loadHistory() {
+            if (!conversationId) return;
+            try {
+                const response = await fetch(`/api/chat/${conversationId}/`);
+                const data = await response.json();
+                if (data.success && data.history) {
+                    data.history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                                  .forEach(msg => addMessage(msg.message, msg.is_user));
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        // Toggle chatbot
+        function toggleChatbot() {
+            isOpen = !isOpen;
+            chatbotContainer.classList.toggle('hidden', !isOpen);
+            chatBubble.style.display = isOpen ? 'none' : 'flex';
+            
+            if (isOpen && !conversationId) {
+                initChatbot();
+            }
+        }
+        
+        // Add message
+        function addMessage(text, isUser) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            typingDiv.id = 'typing-indicator';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+        
+        // Send message
+        async function sendMessage(messageText = null) {
+            const message = messageText || chatInput.value.trim();
+            if (!message) return;
+            
+            addMessage(message, true);
+            if (!messageText) chatInput.value = '';
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch(`/api/chat/${conversationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                hideTypingIndicator();
+                
+                if (response.ok && data.success) {
+                    addMessage(data.response, false);
+                } else {
+                    addMessage("Sorry, I'm having trouble responding right now.", false);
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage("Connection error. Please try again.", false);
+            }
+        }
+        
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Event listeners
+        chatBubble.addEventListener('click', toggleChatbot);
+        chatbotToggle.addEventListener('click', toggleChatbot);
+        chatSend.addEventListener('click', () => sendMessage());
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        quickBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sendMessage(btn.getAttribute('data-msg'));
+            });
+        });
+    });
+</script>

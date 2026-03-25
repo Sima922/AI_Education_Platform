@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Course Certificate</h3>
+                </div>
+                <div class="card-body">
+                    <div class="certificate-container text-center p-5 border">
+                        <div class="certificate-header mb-4">
+                            <h1>Certificate of Completion</h1>
+                            <p>This certifies that</p>
+                        </div>
+                        
+                        <div class="certificate-body my-4">
+                            <h2 class="display-4">{{ user.get_full_name }}</h2>
+                            <p>has successfully completed the course</p>
+                            <h3>"{{ course.title }}"</h3>
+                            <p>with a score of {{ result.percentage|floatformat:1 }}%</p>
+                            <p>on {{ result.created_at|date:"F j, Y" }}</p>
+                        </div>
+                        
+                        <div class="certificate-footer mt-5">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="signature-line"></div>
+                                    <p>Instructor Signature</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="signature-line"></div>
+                                    <p>Date Issued: {{ result.created_at|date:"F j, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="certificate-id mt-4">
+                            <p>Certificate ID: {{ certificate_id }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Print Certificate
+                        </button>
+                        <a href="{% url 'exam_results' session.id %}" class="btn btn-secondary">
+                            Back to Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .card-header, .btn, .navbar, .footer {
+        display: none !important;
+    }
+    .certificate-container {
+        border: none !important;
+        padding: 0 !important;
+    }
+}
+.certificate-container {
+    background: #fafafa;
+    border: 2px solid #ccc;
+    font-family: 'Times New Roman', serif;
+}
+.signature-line {
+    border-bottom: 1px solid #000;
+    width: 200px;
+    margin: 0 auto 10px;
+}
+</style>
+{% endblock %}

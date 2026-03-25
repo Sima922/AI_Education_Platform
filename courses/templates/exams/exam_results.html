@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header {% if result.passed %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h3>Exam Results</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4>{{ exam.course.title }}</h4>
+                        <p>Exam completed on: {{ result.created_at|date:"F j, Y, g:i a" }}</p>
+                        
+                        <div class="score-display">
+                            <div class="display-4 {% if result.passed %}text-success{% else %}text-danger{% endif %}">
+                                {{ result.percentage|floatformat:1 }}%
+                            </div>
+                            <div class="h5">
+                                <span class="badge {% if result.passed %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if result.passed %}PASSED{% else %}FAILED{% endif %}
+                                </span>
+                            </div>
+                            <p>Passing Score: {{ exam.passing_score }}%</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-4" style="height: 30px;">
+                        <div class="progress-bar {% if result.passed %}bg-success{% else %}bg-danger{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ result.percentage }}%;"
+                             aria-valuenow="{{ result.percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ result.percentage|floatformat:1 }}%
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Score Breakdown</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p>Points Earned: <strong>{{ result.score }}/{{ result.max_score }}</strong></p>
+                                    <p>Percentage: <strong>{{ result.percentage|floatformat:1 }}%</strong></p>
+                                    <p>Passing Score: <strong>{{ exam.passing_score }}%</strong></p>
+                                    <p>Time Spent: <strong>{{ session.time_spent_seconds|divisibleby:60|yesno:"","" }}{{ session.time_spent_seconds|time:"H:i:s" }}</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Exam Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p>Attempt: <strong>{{ session_number }} of {{ exam.max_attempts }}</strong></p>
+                                    <p>Time Limit: <strong>{{ exam.time_limit_minutes }} minutes</strong></p>
+                                    <p>Completed: <strong>{{ session.ended_at|date:"F j, Y, g:i a" }}</strong></p>
+                                    <p>Status: 
+                                        <span class="badge {% if result.passed %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if result.passed %}PASSED{% else %}FAILED{% endif %}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if not result.passed and session_number < exam.max_attempts %}
+                    <div class="alert alert-info">
+                        <h5>Next Attempt</h5>
+                        <p>You have {{ exam.max_attempts|subtract:session_number }} attempt{{ exam.max_attempts|subtract:session_number|pluralize }} remaining.</p>
+                        <a href="{% url 'exam_preflight' course.id %}" class="btn btn-primary">
+                            Retake Exam
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if result.passed and not enrollment.certificate_earned %}
+                    <div class="alert alert-success">
+                        <h5>Certificate Earned!</h5>
+                        <p>Congratulations! You've passed the exam and earned a certificate for this course.</p>
+                        <a href="{% url 'certificate' course.id %}" class="btn btn-success">
+                            View Certificate
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'view_course' course.id %}" class="btn btn-secondary">
+                            Back to Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

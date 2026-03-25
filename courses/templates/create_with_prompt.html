@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Course with AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #343a40;
+        }
+        fieldset {
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        legend {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+            min-height: 150px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            width: 100%;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .error {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        .example-prompt {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Course with AI</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <fieldset>
+                <legend>Course Description</legend>
+                
+                <label for="prompt">Describe what you want to teach:</label>
+                <textarea id="prompt" name="prompt" placeholder="Example: Create a beginner-friendly Python course covering variables, loops, functions, and basic data structures. Include practical coding exercises and real-world examples." required></textarea>
+                
+                <div class="example-prompt">
+                    <strong>Example prompts:</strong><br>
+                    - "Make an introductory course on machine learning covering supervised and unsupervised learning with Python examples"<br>
+                    - "Create a photography course for beginners teaching composition, lighting, and camera settings"<br>
+                    - "Design a business finance course explaining financial statements, ratios, and budgeting"
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary">
+                Generate Course
+            </button>
+            
+            <a href="{% url 'courses:create_course' %}" class="btn btn-secondary">
+                Use Detailed Form Instead
+            </a>
+        </form>
+    </div>
+</body>
+</html>

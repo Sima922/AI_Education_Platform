@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .exam-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    .question-card {
+        margin-bottom: 20px;
+    }
+    .timer-container {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        z-index: 1000;
+    }
+    .fullscreen-warning {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #dc3545;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        z-index: 2000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <div class="timer-container">
+        <i class="fas fa-clock"></i> Time Remaining: <span id="exam-timer">{{ exam.time_limit_minutes }}:00</span>
+    </div>
+    
+    <div class="fullscreen-warning" id="fullscreen-warning">
+        <i class="fas fa-exclamation-triangle"></i> Warning: Leaving fullscreen may result in exam termination!
+    </div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4>{{ exam.course.title }} - Exam</h4>
+                        <span>Question <span id="current-question">1</span> of <span id="total-questions">{{ questions|length }}</span></span>
+                    </div>
+                    <div class="card-body">
+                        <form id="exam-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="session_id" value="{{ session.id }}">
+                            
+                            <div id="questions-container">
+                                {% for question in questions %}
+                                <div class="question-card card {% if forloop.first %}active-question{% else %}d-none{% endif %}" 
+                                     data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}">
+                                    <div class="card-header">
+                                        <h5>Question {{ forloop.counter }}</h5>
+                                        <span class="badge bg-secondary">{{ question.get_question_type_display }}</span>
+                                        <span class="badge bg-info">{{ question.points }} point{{ question.points|pluralize }}</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="question-text mb-3">
+                                            {{ question.question_text|linebreaks }}
+                                        </div>
+                                        
+                                        {% if question.question_type == 'multiple_choice' %}
+                                        <div class="options">
+                                            {% for option in question.options %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="option_{{ question.id }}_{{ forloop.counter0 }}"
+                                                       value="{{ forloop.counter0 }}">
+                                                <label class="form-check-label" for="option_{{ question.id }}_{{ forloop.counter0 }}">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        {% elif question.question_type == 'true_false' %}
+                                        <div class="options">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="option_{{ question.id }}_true" value="true">
+                                                <label class="form-check-label" for="option_{{ question.id }}_true">
+                                                    True
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="option_{{ question.id }}_false" value="false">
+                                                <label class="form-check-label" for="option_{{ question.id }}_false">
+                                                    False
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        {% else %}
+                                        <div class="form-group">
+                                            <textarea class="form-control" name="question_{{ question.id }}" 
+                                                      rows="{% if question.question_type == 'short_answer' %}3{% else %}8{% endif %}"
+                                                      placeholder="Type your answer here..."></textarea>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" id="prev-question" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-arrow-left"></i> Previous
+                                </button>
+                                <button type="button" id="next-question" class="btn btn-primary">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                                <button type="button" id="submit-exam" class="btn btn-success d-none">
+                                    Submit Exam
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/exam-timer.js' %}"></script>
+<script src="{% static 'js/exam-interface.js' %}"></script>
+<script src="{% static 'js/exam-proctoring.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize exam with time limit in minutes
+    initExamTimer({{ exam.time_limit_minutes }});
+    
+    // Initialize question navigation
+    initQuestionNavigation({{ questions|length }});
+    
+    // Initialize proctoring
+    initExamProctoring('{{ session.id }}');
+    
+    // Auto-save answers periodically
+    setInterval(saveAnswers, 30000); // Every 30 seconds
+});
+</script>
+{% endblock %}

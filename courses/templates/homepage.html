@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Future - Homepage</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #ff0000;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        header .nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        header button, header a {
+            padding: 8px 16px;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .signin-btn {
+            background-color: white;
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .create-course-btn {
+            background-color: black;
+            color: white;
+        }
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: white;
+            color: #ff0000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 200px;
+            margin-top: 5px;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 12px 16px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #eee;
+        }
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Search bar */
+        .search-bar {
+            margin: 20px auto;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-bar button {
+            padding: 10px;
+            font-size: 1rem;
+            border: none;
+            background-color: #ff0000;
+            color: white;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        /* Section styles */
+        .section {
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .section h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        .course-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .course-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        .course-card {
+            width: 22%;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 10px;
+        }
+        .course-card h3 {
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+        .course-card button {
+            padding: 5px 10px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .course-card {
+                width: 48%;
+            }
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .course-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Your Future</h1>
+    <div class="nav-buttons">
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'courses:create_with_prompt' %}" class="create-course-btn">
+                Create a Course
+            </a>
+
+            <div class="user-menu">
+                <div class="user-info" onclick="toggleDropdown()">
+                    <div class="user-avatar">
+                        {{ user.first_name|first|default:user.username|first|upper }}
+                    </div>
+                    <span>{{ user.first_name|default:user.username }}</span>
+                    <span>▼</span>
+                </div>
+
+                <div class="dropdown-menu" id="userDropdown">
+                    <a href="{% url 'courses:profile' %}" class="dropdown-item">My Profile</a>
+                    <a href="{% url 'courses:user_profile' %}" class="dropdown-item">My Courses</a>
+                    <a href="{% url 'account_logout' %}" class="dropdown-item">Sign Out</a>
+                </div>
+            </div>
+
+        {% else %}
+            <a href="{% url 'courses:login' %}" class="signin-btn">
+                Sign In / Sign Up
+            </a>
+
+            <a href="{% url 'courses:create_with_prompt' %}" class="create-course-btn">
+                Create a Course
+            </a>
+        {% endif %}
+
+    </div>
+</header>
+
+
+<div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search for courses... (real-time search)" autocomplete="off">
+    <button id="search-button" type="button">Search</button>
+
+</div>
+
+<div class="section">
+    <h2>Trending Courses</h2>
+    <div class="course-list" id="trending-courses">
+        {% for course in trending_courses %}
+        <div class="course-card">
+            {% if course.thumbnail and course.thumbnail.url %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+            <div style="width: 100%; height: 120px; background-color: #ddd; border-radius: 8px 8px 0 0;"></div>
+            {% endif %}
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description|truncatewords:15 }}</p>
+            <a href="{% url 'courses:view_course' pk=course.id %}">
+                <button>View Course</button>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<div class="section">
+    <h2>Recommended Courses</h2>
+    <div class="course-list" id="recommended-courses">
+        {% for course in recommended_courses %}
+        <div class="course-card">
+            {% if course.thumbnail and course.thumbnail.url %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+            <div style="width: 100%; height: 120px; background-color: #ddd; border-radius: 8px 8px 0 0;"></div>
+            {% endif %}
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description|truncatewords:15 }}</p>
+            <a href="{% url 'courses:view_course' pk=course.id %}">
+                <button>View Course</button>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="section">
+    <h2>New Courses</h2>
+    <div class="course-list" id="new-courses">
+        {% for course in new_courses %}
+        <div class="course-card">
+            {% if course.thumbnail and course.thumbnail.url %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+            <div style="width: 100%; height: 120px; background-color: #ddd; border-radius: 8px 8px 0 0;"></div>
+            {% endif %}
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description|truncatewords:15 }}</p>
+            <a href="{% url 'courses:view_course' pk=course.id %}">
+                <button>View Course</button>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if enrolled_courses %}
+<div class="section">
+    <h2>My Enrolled Courses</h2>
+    <div class="course-list" id="enrolled-courses">
+        {% for enrollment in enrolled_courses %}
+        <div class="course-card">
+            {% if enrollment.course.thumbnail %}
+            <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+            <div style="width: 100%; height: 120px; background-color: #ddd; border-radius: 8px 8px 0 0;"></div>
+            {% endif %}
+            
+            <div style="padding: 10px;">
+                <h3>{{ enrollment.course.title }}</h3>
+                <p>{{ enrollment.course.description|truncatewords:15 }}</p>
+                
+                {% if enrollment.certificate_earned %}
+                <div style="background-color: #d4edda; color: #155724; padding: 5px; border-radius: 4px; margin: 10px 0; text-align: center;">
+                    <i class="fas fa-certificate"></i> Certificate Earned
+                </div>
+                {% endif %}
+                
+                <a href="{% url 'courses:view_course' pk=enrollment.course.id %}">
+
+                    <button style="width: 100%;">
+                        {% if enrollment.certificate_earned %}View Certificate{% else %}Continue Learning{% endif %}
+                    </button>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p>You haven't enrolled in any courses yet. <a href="#trending-courses">Browse courses above</a> to get started!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if user.is_authenticated %}
+<div class="section">
+    <h2>My Enrolled Courses</h2>
+    <div class="course-list" id="enrolled-courses">
+        {% for enrollment in enrolled_courses %}
+        <div class="course-card">
+            {% if enrollment.course.thumbnail %}
+            <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+            <div style="width: 100%; height: 120px; background-color: #ddd; border-radius: 8px 8px 0 0;"></div>
+            {% endif %}
+            <h3>{{ enrollment.course.title }}</h3>
+            <p>{{ enrollment.course.description|truncatewords:15 }}</p>
+            <a href="{% url 'courses:view_course' pk=enrollment.course.id %}">
+                <button>Continue</button>
+            </a>
+        </div>
+        {% empty %}
+        <p>You haven't enrolled in any courses yet. <a href="#trending-courses">Browse courses above</a> to get started!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+const searchCache = {};
+
+function performSmartSearch(query) {
+    console.log('performSmartSearch called with:', query); // Debug log
+    
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+        console.log('Empty query, performing fallback search');
+        performFallbackSearch();
+        return;
+    }
+
+    const cacheKey = trimmedQuery.toLowerCase();
+    if (searchCache[cacheKey]) {
+        console.log('Found cached result for:', cacheKey);
+        displaySearchResults(
+            searchCache[cacheKey].courses,
+            searchCache[cacheKey].search_type,
+            searchCache[cacheKey].message
+        );
+        return;
+    }
+
+    const searchButton = document.getElementById('search-button');
+    if (!searchButton) {
+        console.error('Search button not found!');
+        alert('Search button not found. Please check your HTML.');
+        return;
+    }
+
+    searchButton.disabled = true;
+    searchButton.textContent = 'Searching...';
+
+    console.log('Making fetch request to:', `/courses/smart-search/?q=${encodeURIComponent(trimmedQuery)}`);
+
+    fetch(`/courses/smart-search/?q=${encodeURIComponent(trimmedQuery)}`)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Search data received:', data);
+            searchCache[cacheKey] = data;
+            displaySearchResults(data.courses, data.search_type, data.message);
+        })
+        .catch(error => {
+            console.error('Search failed:', error);
+            
+            // Show user-friendly error message
+            const errorMessage = `Search failed: ${error.message}`;
+            alert(errorMessage);
+            
+            displaySearchResults([], 'error', errorMessage);
+            performFallbackSearch();
+        })
+        .finally(() => {
+            if (searchButton) {
+                searchButton.disabled = false;
+                searchButton.textContent = 'Search';
+            }
+        });
+}
+
+function performFallbackSearch() {
+    console.log('Performing fallback search');
+    
+    fetch(`/courses/smart-search/`)
+        .then(response => {
+            console.log('Fallback response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fallback data received:', data);
+            displaySearchResults(data.courses, 'fallback', 'Showing trending courses');
+        })
+        .catch(error => {
+            console.error('Fallback failed:', error);
+            const errorMessage = `Fallback search failed: ${error.message}`;
+            displaySearchResults([], 'error', errorMessage);
+            alert(errorMessage);
+        });
+}
+
+function displaySearchResults(courses, searchType, message) {
+    console.log('Displaying search results:', { courses, searchType, message });
+    
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        section.style.display = 'none';
+    });
+
+    let searchSection = document.getElementById('search-results-section');
+    if (!searchSection) {
+        searchSection = document.createElement('div');
+        searchSection.id = 'search-results-section';
+        searchSection.className = 'section';
+        
+        // More robust insertion logic
+        const header = document.querySelector('header');
+        if (header && header.nextSibling) {
+            document.body.insertBefore(searchSection, header.nextSibling);
+        } else {
+            document.body.appendChild(searchSection);
+        }
+    }
+
+    let courseCards = '';
+    if (courses && courses.length > 0) {
+        courseCards = courses.map(course => {
+            const thumb = course.thumbnail_url 
+                ? `<img src="${course.thumbnail_url}" alt="${course.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px 8px 0 0;">`
+                : `<div style="width: 100%; height: 120px; background-color: #ddd; display: flex; align-items: center; justify-content: center; border-radius: 8px 8px 0 0;">No Image</div>`;
+            return `
+                <div class="course-card">
+                    ${thumb}
+                    <h3>${course.title}</h3>
+                    <p>${course.description}</p>
+                    <a href="${course.view_url}">
+                        <button>View Course</button>
+                    </a>
+                </div>
+            `;
+        }).join('');
+    } else {
+        courseCards = `
+            <div style="text-align: center; padding: 30px;">
+                <p>No results found.</p>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    searchSection.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2>Search Results</h2>
+            <button onclick="clearSearch()" style="background: #ff0000; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Clear Search</button>
+        </div>
+        <p>${message}</p>
+        <div class="course-list">${courseCards}</div>
+    `;
+    
+    searchSection.style.display = 'block';
+}
+
+function clearSearch() {
+    console.log('Clearing search');
+    
+    const searchSection = document.getElementById('search-results-section');
+    if (searchSection) {
+        searchSection.remove();
+    }
+    
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        section.style.display = 'block';
+    });
+    
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+}
+
+// Enhanced DOM ready check and event attachment
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, attaching event listeners');
+    
+    const input = document.getElementById('search-input');
+    const button = document.getElementById('search-button');
+    
+    if (!input) {
+        console.error('Search input element not found! Expected element with id="search-input"');
+        return;
+    }
+    
+    if (!button) {
+        console.error('Search button element not found! Expected element with id="search-button"');
+        return;
+    }
+    
+    console.log('Search elements found, attaching listeners');
+    
+    button.addEventListener('click', (e) => {
+        console.log('Search button clicked');
+        e.preventDefault();
+        performSmartSearch(input.value);
+    });
+
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            console.log('Enter key pressed in search input');
+            e.preventDefault();
+            performSmartSearch(input.value);
+        }
+    });
+    
+    console.log('Event listeners attached successfully');
+});
+
+// Additional debugging function you can call from browser console
+function debugSearch() {
+    console.log('=== Search Debug Info ===');
+    console.log('Search input:', document.getElementById('search-input'));
+    console.log('Search button:', document.getElementById('search-button'));
+    console.log('Search cache:', searchCache);
+    console.log('All sections:', document.querySelectorAll('.section'));
+}
+</script>
+
+</body>
+</html>

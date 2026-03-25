@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Configure Exam for {{ course.title }}</h2>
+    
+    <form method="post" id="exam-config-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Exam Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 form-check">
+                    {{ form.is_enabled }}
+                    <label class="form-check-label" for="{{ form.is_enabled.id_for_label }}">
+                        Enable Exam for this Course
+                    </label>
+                </div>
+                
+                <div id="exam-settings" style="display: {% if form.is_enabled.value %}block{% else %}none{% endif %}">
+                    <div class="mb-3">
+                        <label class="form-label">Exam Type</label>
+                        {{ form.exam_type }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Time Limit (minutes)</label>
+                        {{ form.time_limit_minutes }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Passing Score (%)</label>
+                        {{ form.passing_score }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Maximum Attempts</label>
+                        {{ form.max_attempts }}
+                    </div>
+                    
+                    <div class="mb-3" id="prompt-section" style="display: {% if form.exam_type.value == 'custom' %}block{% else %}none{% endif %}">
+                        <label class="form-label">Custom Exam Prompt</label>
+                        {{ form.prompt }}
+                        <div class="form-text">Provide specific instructions for how the AI should generate your exam</div>
+                    </div>
+                    
+                    <div class="mb-3" id="template-section" style="display: {% if form.exam_type.value == 'template' %}block{% else %}none{% endif %}">
+                        <label class="form-label">Exam Template File</label>
+                        {{ form.template_file }}
+                        <div class="form-text">Upload a past exam paper or template to guide the AI</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Save Exam Configuration</button>
+        <a href="{% url 'preview_course' draft_id %}" class="btn btn-secondary">Back to Course Preview</a>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enableCheckbox = document.getElementById('{{ form.is_enabled.id_for_label }}');
+    const examSettings = document.getElementById('exam-settings');
+    const examTypeSelect = document.getElementById('{{ form.exam_type.id_for_label }}');
+    const promptSection = document.getElementById('prompt-section');
+    const templateSection = document.getElementById('template-section');
+    
+    // Toggle exam settings visibility
+    enableCheckbox.addEventListener('change', function() {
+        examSettings.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Toggle prompt/template sections based on exam type
+    examTypeSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            promptSection.style.display = 'block';
+            templateSection.style.display = 'none';
+        } else if (this.value === 'template') {
+            promptSection.style.display = 'none';
+            templateSection.style.display = 'block';
+        } else {
+            promptSection.style.display = 'none';
+            templateSection.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
