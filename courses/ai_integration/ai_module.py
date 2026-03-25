@@ -9,10 +9,7 @@ from django.conf import settings
 import time
 from .youtube_fetcher import fetch_youtube_videos
 
-<<<<<<< HEAD
-# Configure Gemini API
-GEMINI_API_KEY = "AIzaSyCR9r7DnCgmY3s_U2FzBF0rcCTyVUQYhyA"
-=======
+
 # ---------------------------------------------------------------
 # SECURITY FIX: API key loaded from environment variable ONLY.
 # Never hardcode API keys in source code.
@@ -26,8 +23,6 @@ if not GEMINI_API_KEY:
         "Add it to your .env file: GEMINI_API_KEY=your-key-here"
     )
 
->>>>>>> 8ec92ca (Initial commit)
-genai.configure(api_key=GEMINI_API_KEY)
 
 # Create model object with error handling
 try:
