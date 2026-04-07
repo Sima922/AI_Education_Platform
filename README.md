@@ -66,7 +66,7 @@ Creators then review and edit the AI-generated content in a live preview interfa
 
 ### Student Learning Flow
 
-![Student Learning Flow](images/Studentflow.png)
+![Student Learning Flow](images/Studentflow.drawio.png)
 
 
 ## Tech Stack
